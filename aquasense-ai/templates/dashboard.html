@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AquaSense AI | Smart Environmental Monitoring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --deep-ocean: #061724;
+            --tropical-blue: #00d2ff;
+            --aqua-green: #00ffcc;
+            --foam-white: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(10, 30, 45, 0.7);
+            --neon-glow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--deep-ocean);
+            background: linear-gradient(180deg, #0b2d39 0%, #061724 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Bubbles */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><circle cx="100" cy="100" r="2" fill="white" opacity="0.2"><animate attributeName="cy" from="600" to="-100" dur="20s" repeatCount="indefinite"/></circle><circle cx="400" cy="300" r="3" fill="white" opacity="0.1"><animate attributeName="cy" from="600" to="-100" dur="15s" repeatCount="indefinite"/></circle><circle cx="700" cy="500" r="1.5" fill="white" opacity="0.15"><animate attributeName="cy" from="600" to="-100" dur="25s" repeatCount="indefinite"/></circle></svg>');
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .header {
+            position: relative;
+            padding: 60px 20px 80px;
+            background: linear-gradient(to bottom, rgba(0, 210, 255, 0.2), transparent);
+            overflow: hidden;
+        }
+
+        /* Waves Animation */
+        .waves {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            margin-bottom: -5px;
+        }
+
+        .parallax>use {
+            animation: move-forever 25s cubic-bezier(.55, .5, .45, .5) infinite;
+        }
+
+        .parallax>use:nth-child(1) {
+            animation-delay: -2s;
+            animation-duration: 7s;
+        }
+
+        .parallax>use:nth-child(2) {
+            animation-delay: -3s;
+            animation-duration: 10s;
+        }
+
+        .parallax>use:nth-child(3) {
+            animation-delay: -4s;
+            animation-duration: 13s;
+        }
+
+        .parallax>use:nth-child(4) {
+            animation-delay: -5s;
+            animation-duration: 20s;
+        }
+
+        @keyframes move-forever {
+            0% {
+                transform: translate3d(-90px, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(85px, 0, 0);
+            }
+        }
+
+        h1 {
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            letter-spacing: -1px;
+            font-size: clamp(1.8em, 6vw, 3em);
+            text-shadow: 0 4px 20px rgba(0, 210, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .status {
+            padding: 10px 25px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .connected {
+            background: rgba(0, 255, 204, 0.15);
+            color: var(--aqua-green);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+
+        .disconnected {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 40px 20px;
+            max-width: 1300px;
+            margin: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 30px 25px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(0, 255, 204, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), var(--neon-glow);
+        }
+
+        .card h2 {
+            margin: 0 0 20px 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reading {
+            font-size: clamp(2.2em, 5vw, 3.5em);
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .quality {
+            font-size: 0.75em;
+            margin-top: 15px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: fit-content;
+        }
+
+        /* Aquatic Themes */
+        .excellent,
+        .good,
+        .neutral {
+            background: rgba(0, 255, 204, 0.15);
+            color: #00ffcc;
+            border: 1px solid rgba(0, 255, 204, 0.2);
+        }
+
+        .fair,
+        .moderate {
+            background: rgba(255, 170, 0, 0.15);
+            color: #ffaa00;
+            border: 1px solid rgba(255, 170, 0, 0.2);
+        }
+
+        .poor,
+        .acidic {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.2);
+        }
+
+        .alkaline {
+            background: rgba(255, 230, 109, 0.15);
+            color: #ffe66d;
+            border: 1px solid rgba(255, 230, 109, 0.2);
+        }
+
+        .dry {
+            background: rgba(255, 159, 67, 0.15);
+            color: #ff9f43;
+            border: 1px solid rgba(255, 159, 67, 0.2);
+        }
+
+        .humid {
+            background: rgba(108, 92, 231, 0.15);
+            color: #a29bfe;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+        }
+
+        .chart-container {
+            height: 120px;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: currentColor;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        canvas {
+            max-height: 100%;
+            width: 100% !important;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Chatbot Styles */
+        #chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            background: #00ffcc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        #chatbot-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #chatbot-btn svg {
+            width: 35px;
+            height: 35px;
+            fill: #0f2027;
+        }
+
+        #chatbot-window {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 380px;
+            height: 550px;
+            background: rgba(10, 30, 45, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 24px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow: hidden;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: rgba(0, 255, 204, 0.2);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scrollbar-width: thin;
+        }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            background: #00ffcc;
+            color: black;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-input {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: white;
+            outline: none;
+        }
+
+        .chat-input button {
+            background: #00ffcc;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: #0f2027;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1 style="text-align: center;">🌍 AquaSense AI</h1>
+        <div style="text-align: center;">
+            <div id="status" class="status disconnected">
+                <span class="dot"></span> Disconnected
+            </div>
+        </div>
+
+        <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(6, 23, 36, 0.7)" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(0, 210, 255, 0.3)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255, 255, 255, 0.1)" />
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="var(--deep-ocean)" />
+            </g>
+        </svg>
+
+        <div
+            style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 15px; align-items: center;">
+            <div id="ts-status" class="status disconnected" style="font-size: 0.8em; opacity: 0.8; cursor: pointer;"
+                onclick="toggleSource('thingspeak')">
+                <span class="dot" style="background: #00d2ff; box-shadow: 0 0 10px #00d2ff;"></span> ThingSpeak: Idle
+            </div>
+            <div id="local-status" class="status connected" style="font-size: 0.8em; opacity: 0.8; cursor: pointer;"
+                onclick="toggleSource('local')">
+                <span class="dot"></span> Local Sensor
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>🌡 Temperature</h2>
+            <div class="reading" id="temp">-- °C</div>
+            <div class="chart-container">
+                <canvas id="tempChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💧 Humidity</h2>
+            <div class="reading" id="humidity">-- %</div>
+            <div id="humidityStatus" class="quality"></div>
+        </div>
+
+        <div class="card">
+            <h2>🧪 pH Level</h2>
+            <div class="reading" id="ph">--</div>
+            <div id="phStatus" class="quality"></div>
+        </div>
+
+        <div class="card">
+            <h2>💧 TDS</h2>
+            <div class="reading" id="tds">-- ppm</div>
+            <div id="tdsStatus" class="quality"></div>
+        </div>
+
+        <div class="card">
+            <h2>🌫 Air Quality</h2>
+            <div class="reading" id="mq135">--</div>
+            <div id="airStatus" class="quality"></div>
+        </div>
+
+        <div class="card">
+            <h2>🌧 Rain</h2>
+            <div class="reading" id="rain">--</div>
+        </div>
+
+        <div class="card">
+            <h2>🌊 Turbidity</h2>
+            <div class="reading" id="turbidity">--</div>
+            <div id="turbidityStatus" class="quality"></div>
+        </div>
+    </div>
+
+    <!-- Chatbot UI -->
+    <div id="chatbot-window">
+        <div class="chat-header">
+            <span>🤖 AquaBot AI</span>
+            <span style="cursor:pointer;" onclick="toggleChat()">✕</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">Hi! I'm AquaBot. Ask me anything about your water quality!</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Ask a question..."
+                onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div id="chatbot-btn" onclick="toggleChat()">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M21 15c0 4.625-3.507 8.441-8 8.941v-2.01c3.393-.49 6-3.39 6-6.931 0-3.859-3.141-7-7-7S5 11.141 5 15c0 3.541 2.607 6.441 6 6.931v2.01c-4.493-.5-8-4.316-8-8.941 0-4.963 4.037-9 9-9s9 4.037 9 9zM12 2C6.477 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.122 21.878c-.146.354-.059.754.218 1.018l.004.004c.261.261.661.353 1.014.215L8.25 21.611c1.22.613 2.583.945 3.993.945l.257-.002c5.523-.002 9.757-4.477 9.757-10 0-5.523-4.477-10-10-10z" />
+        </svg>
+    </div>
+
+    <script>
+        let tempChart = null;
+        let currentSource = 'local'; // 'local' or 'thingspeak'
+        const MAX_DATA_POINTS = 25;
+        const statusEl = document.getElementById('status');
+        const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' : '';
+
+        function initChart() {
+            const canvas = document.getElementById('tempChart');
+            if (!canvas) return null;
+
+            const ctx = canvas.getContext('2d');
+            tempChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#00ffcc',
+                        backgroundColor: 'rgba(0,255,204,0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(0,255,204,0.1)' },
+                            ticks: { color: '#ccc', font: { size: 11 } }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    interaction: { intersect: false },
+                    animation: false
+                }
+            });
+            return tempChart;
+        }
+
+        function updateStatus(state, lastUpdated = null, deviceId = null) {
+            let statusText = 'Disconnected';
+            let statusClass = 'disconnected';
+
+            // Ignore mock data (IDs: HQ, MID) for main connection status
+            const isMock = deviceId === 'HQ' || deviceId === 'MID';
+
+            if (state === 'server_offline') {
+                statusText = 'Server Offline';
+                statusClass = 'disconnected';
+            } else if (state === 'connected') {
+                statusText = 'Connected';
+                statusClass = 'connected';
+
+                if (lastUpdated) {
+                    const last = new Date(lastUpdated);
+                    const now = new Date();
+                    const diffSeconds = (now - last) / 1000;
+
+                    if (diffSeconds > 30 && deviceId !== 'THINGSPEAK') {
+                        statusText = 'Device Offline';
+                        statusClass = 'disconnected';
+                    } else if (isMock) {
+                        statusText = 'Connected (Simulator)';
+                    } else if (deviceId === 'THINGSPEAK') {
+                        statusText = 'Cloud Connected';
+                    }
+                }
+            }
+
+            statusEl.innerHTML = `<span class="dot"></span> ${statusText}`;
+            statusEl.className = `status ${statusClass}`;
+        }
+
+        function toggleSource(source) {
+            currentSource = source;
+            const tsBtn = document.getElementById('ts-status');
+            const localBtn = document.getElementById('local-status');
+
+            if (source === 'thingspeak') {
+                tsBtn.style.opacity = '1';
+                tsBtn.style.border = '2px solid var(--tropical-blue)';
+                localBtn.style.opacity = '0.5';
+                localBtn.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                fetchThingSpeakData();
+            } else {
+                localBtn.style.opacity = '1';
+                localBtn.style.border = '2px solid var(--aqua-green)';
+                tsBtn.style.opacity = '0.5';
+                tsBtn.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                fetchData();
+            }
+        }
+
+        function updateQuality(elementId, status) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = status;
+                el.className = `quality ${status.toLowerCase()}`;
+            }
+        }
+
+        async function fetchData() {
+            if (currentSource !== 'local') return;
+            try {
+                const res = await fetch(`${API_BASE}/api/current`);
+                if (res.ok) {
+                    const data = await res.json();
+                    updateValues(data);
+                    updateStatus('connected', data.timestamp, data.device_id);
+                } else {
+                    updateStatus('disconnected');
+                }
+            } catch (e) {
+                console.error('Fetch error:', e);
+                updateStatus('server_offline');
+            }
+        }
+
+        function updateValues(data) {
+            try {
+                const temp = Number(data.temperature) || 0;
+                const humidity = Number(data.humidity) || 0;
+                const ph = Number(data.ph) || 0;
+                const tds = Number(data.tds) || 0;
+                const mq = Number(data.mq135 || data.air_quality) || 0;
+                const rain = data.rain || "--";
+                const turbidity = Number(data.turbidity) || 0;
+
+                document.getElementById("temp").textContent = temp.toFixed(1) + " °C";
+                document.getElementById("humidity").textContent = humidity.toFixed(1) + " %";
+                document.getElementById("ph").textContent = ph.toFixed(2);
+                document.getElementById("tds").textContent = Math.round(tds) + " ppm";
+                document.getElementById("mq135").textContent = Math.round(mq);
+                document.getElementById("rain").textContent = rain;
+                if (document.getElementById("turbidity")) {
+                    document.getElementById("turbidity").textContent = turbidity.toFixed(2) + " NTU";
+                }
+
+                updateQuality("phStatus", ph < 6.5 ? "Acidic" : ph <= 7.5 ? "Neutral" : "Alkaline");
+                updateQuality("tdsStatus", tds < 300 ? "Excellent" : tds < 600 ? "Good" : tds < 900 ? "Fair" : "Poor");
+                updateQuality("airStatus", mq < 800 ? "Good" : mq < 1500 ? "Moderate" : "Poor");
+                updateQuality("humidityStatus", humidity < 40 ? "Dry" : humidity < 60 ? "Good" : "Humid");
+                updateQuality("turbidityStatus", turbidity < 5 ? "Excellent" : turbidity < 10 ? "Good" : "Poor");
+
+                if (tempChart) updateChart(temp);
+            } catch (e) {
+                console.error('Update error:', e);
+            }
+        }
+
+        function updateChart(value) {
+            if (tempChart.data.labels.length >= MAX_DATA_POINTS) {
+                tempChart.data.labels.shift();
+                tempChart.data.datasets[0].data.shift();
+            }
+            tempChart.data.labels.push(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            tempChart.data.datasets[0].data.push(value);
+            tempChart.update('none');
+        }
+
+        // Chatbot Functions
+        function toggleChat() {
+            const window = document.getElementById('chatbot-window');
+            window.style.display = window.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            // Add user message via DOM creation
+            const userBox = document.createElement('div');
+            userBox.className = 'message user-message';
+            userBox.textContent = text;
+            messages.appendChild(userBox);
+
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+
+            // Add thinking indicator
+            const botBox = document.createElement('div');
+            botBox.className = 'message bot-message';
+            botBox.textContent = 'Thinking...';
+            messages.appendChild(botBox);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/chatbot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                if (!res.ok) throw new Error('API Error');
+
+                const data = await res.json();
+                botBox.textContent = data.response;
+            } catch (e) {
+                botBox.textContent = "Error: Bot API unavailable. Ensure server is running at http://localhost:5000";
+                botBox.style.color = "#ff4444";
+                console.error('Chat error:', e);
+            }
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function fetchThingSpeakData() {
+            try {
+                const res = await fetch(`${API_BASE}/api/thingspeak/latest`);
+                const statusEl = document.getElementById('ts-status');
+                if (res.ok) {
+                    const data = await res.json();
+                    statusEl.innerHTML = `<span class="dot" style="background: #00ffcc; box-shadow: 0 0 10px #00ffcc;"></span> ThingSpeak: Live (Entry #${data.entry_id})`;
+                    statusEl.className = 'status connected';
+
+                    // Update main UI with ThingSpeak data ONLY if it's the current source
+                    if (currentSource === 'thingspeak') {
+                        updateValues(data);
+                        updateStatus('connected', data.timestamp, 'THINGSPEAK');
+                    }
+                } else {
+                    const error = await res.json();
+                    statusEl.innerHTML = `<span class="dot"></span> ThingSpeak: ${error.error || 'Offline'}`;
+                    statusEl.className = 'status disconnected';
+                }
+            } catch (e) {
+                console.error('ThingSpeak fetch error:', e);
+            }
+        }
+
+        window.onload = () => {
+            initChart();
+            toggleSource('local'); // Default to local
+            setInterval(fetchData, 5000); // Poll local every 5 seconds
+            setInterval(fetchThingSpeakData, 15000); // Poll ThingSpeak every 15 seconds
+        };
+    </script>
+</body>
+
+</html>

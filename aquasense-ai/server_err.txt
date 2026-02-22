@@ -1,0 +1,35 @@
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.0.30.6:5000
+Press CTRL+C to quit
+127.0.0.1 - - [17/Feb/2026 00:25:41] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:41] "GET /api/alerts/active HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/history/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/history/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:43] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:53] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:53] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:53] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:53] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:55] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:25:55] "GET /api/alerts/active HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 00:25:55] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:03] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:03] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:03] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:03] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:13] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:13] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:13] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:13] "GET /api/map/data HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:29] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:29] "GET /api/current HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:29] "GET /api/history/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 00:26:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 00:26:29] "GET /api/map/data HTTP/1.1" 200 -

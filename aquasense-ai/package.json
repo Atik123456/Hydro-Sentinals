@@ -1,0 +1,11 @@
+{
+  "name": "aquasense-ai",
+  "version": "1.0.0",
+  "description": "Smart Water Monitoring Dashboard",
+  "main": "app.py",
+  "scripts": {
+    "dev": "python app.py",
+    "start": "python app.py"
+  },
+  "dependencies": {}
+}
